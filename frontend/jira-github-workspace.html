@@ -16,12 +16,11 @@
 <section class="card" aria-labelledby="jira-title"><div class="card-header"><div class="symbol">▤</div><div><h2 id="jira-title">Create Jira Issue</h2></div></div><p class="hint">Provide the requirement. AI issue classification will be connected later.</p>
 <div class="field"><label for="project">Jira project key</label><input id="project" placeholder="e.g. REC" autocomplete="off"></div>
 <div class="field"><label for="summary">Issue summary</label><input id="summary" placeholder="e.g. Add receipt upload screen"></div>
-<div class="field"><label for="type">Issue type</label><select id="type"><option value="auto" selected>✨ Auto-detect using AI (planned)</option><option>Story</option><option>Bug</option><option>Task</option><option>Subtask</option></select><p class="helper">The AI will suggest a type. You will be able to review it before creating Jira.</p></div>
+<div class="field"><label for="type">Issue type</label><select id="type"><option value="auto" selected>Auto-detect</option><option>Story</option><option>Bug</option><option>Task</option><option>Subtask</option></select><p class="helper">Auto-detect issue type will be able to review it before creating Jira.</p></div>
 <div class="field"><label for="parent">Parent Jira ID <span class="optional">(for subtasks)</span></label><input id="parent" placeholder="e.g. REC-100"></div>
 <div class="field"><label for="description">Description / requirements</label><textarea id="description" placeholder="Describe the desired behaviour, user journey and any existing issues..."></textarea></div>
 <div class="field"><label for="criteria">Acceptance criteria <span class="optional">(optional)</span></label><textarea id="criteria" style="min-height:80px" placeholder="- User can upload PDF or JPG&#10;- Show an error for invalid files"></textarea></div>
 <div class="field"><label for="attachments">Screenshots & attachments <span class="optional">(optional)</span></label><input id="attachments" type="file" multiple accept="image/*,.pdf,.doc,.docx,.txt"><p class="helper">Select images, PDFs or documents. Upload integration comes later.</p></div>
-<div class="callout"><strong>✨ AI classification — coming next</strong><p>Story, Bug, Task or Subtask will be suggested from your requirements and checked against available Jira issue types.</p></div>
 <button type="button">＋ Create Jira Issue</button><div class="status">Jira status: Not connected · No issue created</div>
 </section>
 <section class="card" aria-labelledby="github-title"><div class="card-header"><div class="symbol github">⑂</div><div><h2 id="github-title">Develop Code & Create PR</h2></div></div><p class="hint">Use an existing Jira issue and a GitHub repository to prepare implementation.</p>
