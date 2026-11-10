@@ -15,12 +15,14 @@ from app.model.models import (
     IssueType,
 )
 
+from app.model.models import IssueType
+
 logger = logging.getLogger(__name__)
 
 def classify_jira_issue_type(request : ClassifyRequest) -> ClassifyResponse:
     if request.issue_type == IssueType.AUTO:
         return ClassifyResponse(
-            issue_type=IssueType.TASK,
+            issue_type=IssueType.STORY,
             source="LLM"
         )
     return ClassifyResponse(

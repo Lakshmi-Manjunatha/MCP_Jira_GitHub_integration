@@ -1,3 +1,4 @@
+
 # Secrets
 .env
 .env.*
@@ -19,7 +20,28 @@ __pycache__/
 Thumbs.db
 
 # Frontend dependencies
-node_modules/
+frontend/node_modules/
+
+# TypeScript generated JavaScript
+frontend/**/*.js
+frontend/**/*.js.map
+
+# TypeScript build information
+frontend/**/*.tsbuildinfo
+
+# Frontend build outputs
+frontend/dist/
+frontend/build/
+frontend/coverage/
+
+# Frontend environment files
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+frontend/package-lock.json
+frontend/package.json
 
 # Logs
 *.log
+npm-debug.log*
