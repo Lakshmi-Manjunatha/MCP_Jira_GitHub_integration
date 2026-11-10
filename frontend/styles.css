@@ -1,0 +1,52 @@
+
+#selected-attachments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.attachment-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    padding: 5px 6px 5px 12px;
+    background: #e7f5f2;
+    border: 1px solid #cceae4;
+    border-radius: 20px;
+    font-size: 12px;
+    color: #152338;
+    overflow-wrap: anywhere;
+}
+
+/* Override the global button styles */
+.attachment-chip .attachment-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    padding: 0;
+    margin: 0;
+    border: 1px solid #94a3b8;
+    border-radius: 50%;
+    background: white;
+    color: #475569;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1;
+    box-shadow: none;
+    transform: none;
+    cursor: pointer;
+}
+
+.attachment-chip .attachment-remove:hover {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #dc2626;
+    box-shadow: none;
+    transform: none;
+}
