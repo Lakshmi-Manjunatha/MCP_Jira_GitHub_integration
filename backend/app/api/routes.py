@@ -1,13 +1,13 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter,File,Form,Body, HTTPException,UploadFile
+from fastapi import APIRouter,File,Form,Body, HTTPException,UploadFile, Request
 from app.model.models import( ClassifyResponse, ClassifyRequest,
                               JiraRequest, JiraResponse,
                               IssueType,)
 
 
-from app.service.jira_service import (create_jira_issue,
+from app.service.jira_service import (create_jira,
                                       classify_jira_issue_type,)
 
 router = APIRouter(prefix="/api/v1",  tags=["Jira"])
@@ -35,14 +35,17 @@ def classify_jira_issue(request: Annotated[ClassifyRequest, Body()]):
     "/jira/issues",
     response_model=JiraResponse
 )
+
 async def create_jira_issue(
         request: Annotated[JiraRequest, Form()],
-        attachments: Annotated[
-            list[UploadFile] | None,
-            File()
-        ] = None,
+        http_request: Request,
 ):
     logger.info("Jira creation requested. Summary: %s", request.summary)
-    return await create_jira_issue(request)
 
-
+    form = await http_request.form()
+    attachments = [
+        value
+        for value in form.getlist("attachments")
+        if isinstance(value, UploadFile) and value.filename
+    ]
+    return await create_jira(request, attachments)

@@ -11,10 +11,12 @@ class IssueType(str, Enum):
     SUBTASK = "subtask"
 
 class JiraResponse(BaseModel):
+    success: bool
     jira_id: Annotated[
         str,
         Field(min_length=2, max_length=20)
     ]
+    jira_url: str | None = None
 
 class JiraRequest(BaseModel):
     summary: Annotated[str, Field(min_length=3, max_length=255)]

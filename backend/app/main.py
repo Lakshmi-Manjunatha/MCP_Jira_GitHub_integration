@@ -4,12 +4,14 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-
+from fastapi.encoders import jsonable_encoder
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.routes import router
 from app.logging_config import configure_logging
 from app.config import get_settings
+from app.integration.mcp_exceptions import MCPIntegrationError
+
 
 settings = get_settings()
 
@@ -62,3 +64,16 @@ def generic_exception_handler(request: Request, exc: Exception):
 
 app.include_router(router)
 logger.info("FastAPI application initialized")
+
+@app.exception_handler(MCPIntegrationError)
+async def mcp_exception_handler(
+        request: Request,
+        exc: MCPIntegrationError,
+):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "success": False,
+            "error": str(exc),
+        },
+    )
