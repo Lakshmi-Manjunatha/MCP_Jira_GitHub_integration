@@ -1,17 +1,14 @@
-
-# Python
-__pycache__/
-*.pyc
-.venv/
-venv/
-
 # Secrets
 .env
 .env.*
 !.env.example
 
-# TypeScript / Node
-node_modules/
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
 
 # IDE
 .idea/
@@ -21,5 +18,8 @@ node_modules/
 .DS_Store
 Thumbs.db
 
-# Temporary coding workspaces
-workspaces/
+# Frontend dependencies
+node_modules/
+
+# Logs
+*.log
