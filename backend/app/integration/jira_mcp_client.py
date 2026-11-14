@@ -123,11 +123,12 @@ def map_connection_error(exc: BaseException) -> MCPIntegrationError:
             "Atlassian MCP returned an HTTP error",
             502,
         )
+    raise
 
-    return MCPIntegrationError(
-        "Unable to communicate with Atlassian MCP",
-        502,
-    )
+    #return MCPIntegrationError(
+     #   "Unable to communicate with Atlassian MCP",
+      #  502,
+    #)
 
 
 async def call_jira_mcp_tool(
@@ -203,3 +204,45 @@ async def call_jira_mcp_tool(
         raise error
 
     return payload
+
+
+#TO DELETE
+async def get_jira_mcp_tool_schema(tool_name: str) -> dict:
+    settings = get_settings()
+
+    try:
+        async with httpx.AsyncClient(
+                headers=build_auth_headers(),
+                timeout=httpx.Timeout(60.0, read=300.0),
+                follow_redirects=True,
+        ) as http_client:
+
+            async with streamable_http_client(
+                    settings.atlassian_mcp_url,
+                    http_client=http_client,
+            ) as (read, write):
+
+                async with ClientSession(read, write) as session:
+                    await session.initialize()
+
+                    # No cursor argument
+                    result = await session.list_tools()
+
+                    for tool in result.tools:
+                        if tool.name == tool_name:
+                            return {
+                                "tool_name": tool.name,
+                                "description": tool.description,
+                                "input_schema": tool.input_schema,
+                                "output_schema": tool.output_schema,
+                            }
+
+    except MCPIntegrationError:
+        raise
+    except Exception as exc:
+        raise map_connection_error(exc) from exc
+
+    raise MCPIntegrationError(
+        f"MCP tool '{tool_name}' not found",
+        404,
+    )
