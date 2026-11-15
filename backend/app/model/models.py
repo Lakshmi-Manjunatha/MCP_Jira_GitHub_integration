@@ -72,3 +72,27 @@ class ClassifyRequest(BaseModel):
     description: Annotated[str, Field(min_length=3)]
     issue_type: IssueType
 
+class CodeGenerationRequest(BaseModel):
+    jira_id: Annotated[str, Field(min_length=5, max_length=10)]
+    repository_url: Annotated[str, Field(min_length=12, max_length=100)]
+    base_branch:Annotated[str, Field(default="main", min_length=4, max_length=50)]
+    additional_instructions: str
+
+class CodeGenerationResponse(BaseModel):
+    pr_url: str
+    success: bool
+
+class JiraSubtask(BaseModel):
+    id: str
+    key: str
+
+
+class JiraIssueDetails(BaseModel):
+    jira_id: str
+    issue_key: str
+    project_key: str | None = None
+    summary: str | None = None
+    description: str | None = None
+    attachment_ids: list[str] = Field(default_factory=list)
+    subtasks: list[JiraSubtask] = Field(default_factory=list)
+

@@ -17,6 +17,11 @@ class Settings(BaseSettings):
     atlassian_api_token: str
     atlassian_cloud_id: str
 
+    github_token:str
+    github_mcp_url:str
+    github_owner:str
+
+
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
         env_file_encoding="utf-8",

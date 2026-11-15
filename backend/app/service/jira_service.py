@@ -2,22 +2,25 @@ import re
 import json
 import logging
 
+import json
+import httpx
+from urllib.parse import urlparse
+
 from fastapi import HTTPException, UploadFile
 
 from app.config import get_settings
 from app.integration.jira_mcp_client import call_jira_mcp_tool
-
 from app.model.models import (
     ClassifyRequest,
     ClassifyResponse,
     JiraRequest,
     JiraResponse,
     IssueType,
+    JiraIssueDetails
 )
-
-from app.model.models import IssueType
-
 logger = logging.getLogger(__name__)
+
+settings = get_settings()
 
 def classify_jira_issue_type(request : ClassifyRequest) -> ClassifyResponse:
     if request.issue_type == IssueType.AUTO:
@@ -44,8 +47,6 @@ async def create_jira(request: JiraRequest, attachments: list[UploadFile] | None
                 status_code=400,
                 detail="Parent Jira ID is required for subtask"
         )
-
-    settings = get_settings()
 
     description = request.description
 
@@ -146,3 +147,137 @@ def extract_jira_id_return_response(result : dict,
         jira_id=jira_id,
         jira_url=f"{cloud_id.rstrip('/')}/browse/{jira_id}"
     )
+
+
+async def get_jira_issue(jira_id: str) -> JiraIssueDetails:
+
+    result = await call_jira_mcp_tool(
+        tool_name="getJiraIssue",
+        arguments={
+            "cloudId": settings.atlassian_cloud_id,
+            "issueIdOrKey": jira_id,
+            "fields": [
+                "summary",
+                "description",
+                "attachment",
+                "subtasks",
+                "project"
+            ],
+            "fieldsByKeys": True
+        },
+    )
+
+    for block in result.get("content", []):
+        if block.get("type") != "text":
+            continue
+
+        payload = json.loads(block["text"])
+        issue = payload.get("data", {})
+        fields = issue.get("fields") or {}
+
+        return JiraIssueDetails(
+            jira_id=issue["id"],
+            issue_key=issue["key"],
+            project_key=(fields.get("project") or {}).get("key"),
+            summary=fields.get("summary"),
+            description=fields.get("description"),
+            attachment_ids=[
+                str(a["id"])
+                for a in fields.get("attachment", [])
+                if a.get("id")
+            ],
+            subtasks=[
+                {
+                    "id": str(s["id"]),
+                    "key": s["key"]
+                }
+                for s in fields.get("subtasks", [])
+                if s.get("id") and s.get("key")
+            ]
+        )
+
+    raise ValueError("No Jira issue data returned")
+
+
+async def get_attachment_download_info(
+        attachment_id: str,
+) -> dict:
+    settings = get_settings()
+
+    return await call_jira_mcp_tool(
+        tool_name="executeRead",
+        arguments={
+            "name": "downloadJiraIssueAttachment",
+            "cloudId": settings.atlassian_cloud_id,
+            "inputs": {
+                "attachmentId": attachment_id,
+            },
+        },
+    )
+
+def extract_download_url(mcp_result: dict) -> str:
+    for block in mcp_result.get("content", []):
+        if block.get("type") != "text":
+            continue
+
+        payload = json.loads(block["text"])
+
+        data = payload.get("data", payload)
+
+        if isinstance(data, dict):
+            url = data.get("downloadUrl")
+            if isinstance(url, str) and url:
+                return url
+
+    raise ValueError(
+        "MCP response does not contain downloadUrl"
+    )
+
+
+async def download_attachment_text(
+        attachment_id: str,
+) -> str:
+    # Reuse the function we implemented earlier.
+    mcp_result = await get_attachment_download_info(
+        attachment_id
+    )
+
+    download_url = extract_download_url(mcp_result)
+
+    parsed = urlparse(download_url)
+
+    if (
+            parsed.scheme != "https"
+            or parsed.hostname != "api.media.atlassian.com"
+            or parsed.username is not None
+            or parsed.password is not None
+    ):
+        raise ValueError(
+            "Unexpected attachment download URL"
+        )
+
+    async with httpx.AsyncClient(
+            timeout=30.0,
+            follow_redirects=False,
+    ) as client:
+        async with client.stream(
+                "GET",
+                download_url,
+        ) as response:
+            response.raise_for_status()
+
+            chunks = []
+            total_size = 0
+            max_size = 1024 * 1024  # 1 MB
+
+            async for chunk in response.aiter_bytes():
+                total_size += len(chunk)
+
+                if total_size > max_size:
+                    raise ValueError(
+                        "Attachment exceeds 1 MB"
+                    )
+
+                chunks.append(chunk)
+
+    return b"".join(chunks).decode("utf-8")
